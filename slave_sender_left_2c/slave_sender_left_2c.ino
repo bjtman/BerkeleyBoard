@@ -1,6 +1,6 @@
 //---------------
 // Brian Tice
-// 5-2-2013
+// 5-4-2013
 //---------------
 // Slave-Left Version 2c
 
@@ -30,9 +30,9 @@
 #define CONTROL3 2
 
 //Create arrays for data from the the MUXs
-int      mux0array[16];
-int      mux1array[16];
-int      mux2array[16];
+int      muxArray[48];
+int      lowArray[48];
+int      maxArray[48];
 //boolean  Stateof_Leftswitches[16];
 
 
@@ -59,59 +59,50 @@ void setup()
 
 void loop()
 {
+  int newValue = 0;
+  //This for loop is used to scroll through and store the 16 inputs on the FIRST multiplexer
+  for (int i=0; i<16; i++)
+  {
+    
+    
+    //The following 4 commands set the correct logic for the control pins to select the desired input
+    digitalWrite(CONTROL0, (i&15)>>3); 
+    digitalWrite(CONTROL1, (i&7)>>2);  
+    digitalWrite(CONTROL2, (i&3)>>1);  
+    digitalWrite(CONTROL3, (i&1));     
+    
+    //Read and store the input value at a location in the array
+    newValue =        analogRead(0);
+    muxArray[i] =     newValue;
+    lowArray[i] =     min(lowArray[i],newValue);
+    maxArray[i] =     max(maxArray[i],newValue);
+    delay(20);                          // Tweak These values, may not even be needed
+    
+    newValue =        analogRead(1);
+    muxArray[i+16] =  newValue;
+    lowArray[i+16] =  min(lowArray[i+16],newValue);
+    maxArray[i+16] =  max(maxArray[i+16],newValue);
+    delay(20);                          // Tweak These values, may not even be needed
+    
+    newValue =        analogRead(2);
+    muxArray[i+32] =  newValue;
+    lowArray[i+32] =  min(lowArray[i+32],newValue);
+    maxArray[i+32] =  max(maxArray[i+32],newValue);
+    delay(20);                          // Tweak These values, may not even be needed
+  }
+  
  
-  //This for loop is used to scroll through and store the 16 inputs on the FIRST multiplexer
-  for (int i=0; i<16; i++)
-  {
-    //The following 4 commands set the correct logic for the control pins to select the desired input
-    digitalWrite(CONTROL0, (i&15)>>3); 
-    digitalWrite(CONTROL1, (i&7)>>2);  
-    digitalWrite(CONTROL2, (i&3)>>1);  
-    digitalWrite(CONTROL3, (i&1));     
-    
-    //Read and store the input value at a location in the array
-    mux0array[i] = analogRead(0);
-    delay(40);
-  }
-  
-  //This for loop is used to scroll through and store the 16 inputs on the SECOND multiplexer
-  for (int i=0; i<16; i++)
-  {
-    //The following 4 commands set the correct logic for the control pins to select the desired input
-    digitalWrite(CONTROL0, (i&15)>>3); 
-    digitalWrite(CONTROL1, (i&7)>>2);  
-    digitalWrite(CONTROL2, (i&3)>>1);  
-    digitalWrite(CONTROL3, (i&1));     
-    
-    //Read and store the input value at a location in the array
-    mux1array[i] = analogRead(1);
-    delay(40);
-  }
-  
-  //This for loop is used to scroll through and store the 16 inputs on the FIRST multiplexer
-  for (int i=0; i<16; i++)
-  {
-    //The following 4 commands set the correct logic for the control pins to select the desired input
-    digitalWrite(CONTROL0, (i&15)>>3); 
-    digitalWrite(CONTROL1, (i&7)>>2);  
-    digitalWrite(CONTROL2, (i&3)>>1);  
-    digitalWrite(CONTROL3, (i&1));     
-    
-    //Read and store the input value at a location in the array
-    mux2array[i] = analogRead(2);
-    delay(40);
-  }
   
  
   //populate our two long variables with compressed binary sensor data:
   for(int index=0;index<16;index++)
   {
     //We want to clear the bit that
-    if(mux0array[index] < LOWTHRESH) 
+    if(muxArray[index] < LOWTHRESH) 
     {
       LeftSensorData.leftSwitchOnOffArray[0] &= ~(1 << index);
     }
-    if(mux0array[index] > HIGHTHRESH)
+    if(muxArray[index] > HIGHTHRESH)
     {
       LeftSensorData.leftSwitchOnOffArray[0] |= (1 << index);
     }
@@ -120,11 +111,11 @@ void loop()
   for(int indexTwo=0;indexTwo<16;indexTwo++)
   {
     //We want to clear the bit that
-    if(mux1array[indexTwo] < LOWTHRESH) 
+    if(muxArray[indexTwo+16] < LOWTHRESH) 
     {
       LeftSensorData.leftSwitchOnOffArray[0] &= ~(1 << (indexTwo + 16));
     }
-    if(mux1array[indexTwo] > HIGHTHRESH)
+    if(muxArray[indexTwo+16] > HIGHTHRESH)
     {
       
       LeftSensorData.leftSwitchOnOffArray[0] |= (1 << (indexTwo + 16));
@@ -138,11 +129,11 @@ void loop()
   for(int indexThree=0;indexThree<16;indexThree++)
   {
     //We want to clear the bit that
-    if(mux2array[indexThree] < LOWTHRESH) 
+    if(muxArray[indexThree+32] < LOWTHRESH) 
     {
       LeftSensorData.leftSwitchOnOffArray[1] &= ~(1 << indexThree);
     }
-    if(mux2array[indexThree] > HIGHTHRESH)
+    if(muxArray[indexThree+32] > HIGHTHRESH)
     {
       LeftSensorData.leftSwitchOnOffArray[1] |= (1 << indexThree);
     }
